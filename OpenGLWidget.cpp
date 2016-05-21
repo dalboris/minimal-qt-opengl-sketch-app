@@ -1,5 +1,7 @@
 #include "OpenGLWidget.h"
 
+#include <QMouseEvent>
+
 OpenGLWidget::OpenGLWidget(QWidget *parent)
     : QOpenGLWidget(parent)
 {
@@ -11,6 +13,23 @@ OpenGLWidget::~OpenGLWidget()
     makeCurrent();
     cleanupGL();
     doneCurrent();
+}
+
+void OpenGLWidget::mousePressEvent(QMouseEvent * /*event*/)
+{
+    inputSamples_.clear();
+    update();
+}
+
+void OpenGLWidget::mouseMoveEvent(QMouseEvent * event)
+{
+    inputSamples_.push_back(event->pos());
+    update();
+}
+
+void OpenGLWidget::mouseReleaseEvent(QMouseEvent * /*event*/)
+{
+    // Nothing to do
 }
 
 OpenGLFunctions * OpenGLWidget::openGLFunctions() const
@@ -40,6 +59,8 @@ void OpenGLWidget::resizeGL(int w, int h)
 
 void OpenGLWidget::paintGL()
 {
+    computeGLSamples_();
+
     OpenGLFunctions * f = openGLFunctions();
 
     f->glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -51,4 +72,9 @@ void OpenGLWidget::cleanupGL()
 {
     OpenGLFunctions * f = openGLFunctions();
 
+}
+
+void OpenGLWidget::computeGLSamples_()
+{
+    // XXX TODO
 }

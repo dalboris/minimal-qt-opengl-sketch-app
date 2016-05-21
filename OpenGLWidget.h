@@ -10,7 +10,7 @@
 
 #include <vector>
 
-using OpenGLFunctions = QOpenGLFunctions_3_2_Core;
+typedef QOpenGLFunctions_3_2_Core OpenGLFunctions;
 
 class OpenGLWidget : public QOpenGLWidget
 {

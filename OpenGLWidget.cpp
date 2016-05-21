@@ -83,6 +83,9 @@ void OpenGLWidget::initializeGL()
     f->glClearColor(1, 1, 1, 1);
 }
 
+#undef near
+#undef far
+
 void OpenGLWidget::resizeGL(int w, int h)
 {
     // Set projection matrix

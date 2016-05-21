@@ -4,6 +4,7 @@
 #include <QOpenGLWidget>
 #include <QOpenGLFunctions_3_2_Core>
 #include <QMatrix4x4>
+#include <QOpenGLShaderProgram>
 #include <QOpenGLBuffer>
 #include <QOpenGLVertexArrayObject>
 
@@ -36,22 +37,32 @@ private:
 
 private:
     QPointF computeNormal_(const QPoint & p, const QPoint & q);
-    void computeGLSamples_();
+    void computeGLVertices_();
 
 private:
-    QMatrix4x4 projectionMatrix_;
+    // Projection and view matrix
+    QMatrix4x4 projMatrix_;
     QMatrix4x4 viewMatrix_;
 
+    // Input mouse data
     std::vector<QPoint> inputSamples_;
 
+    // RAM resources synced with GL resources
     struct GLVertex {
         float x, y;
         GLVertex(float x, float y) : x(x), y(y) {}
     };
     std::vector<GLVertex> glVertices_;
 
+    // GL resources
+    QOpenGLShaderProgram shaderProgram_;
     QOpenGLBuffer vbo_;
     QOpenGLVertexArrayObject vao_;
+
+    // Shader locations
+    int vertexLoc_;
+    int projMatrixLoc_;
+    int viewMatrixLoc_;
 };
 
 #endif // OPENGLWIDGET_H

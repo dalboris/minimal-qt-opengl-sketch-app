@@ -11,3 +11,6 @@ HEADERS  += \
 DISTFILES += \
     shader.f.glsl \
     shader.v.glsl
+
+RESOURCES += \
+    sketchapp.qrc

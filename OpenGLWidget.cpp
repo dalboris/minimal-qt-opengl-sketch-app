@@ -7,11 +7,13 @@
 OpenGLWidget::OpenGLWidget(QWidget *parent)
     : QOpenGLWidget(parent)
 {
+    // Set view matrix
     viewMatrix_.setToIdentity();
 }
 
 OpenGLWidget::~OpenGLWidget()
 {
+    // Make OpenGL context current and call cleanupGL()
     makeCurrent();
     cleanupGL();
     doneCurrent();
@@ -19,12 +21,14 @@ OpenGLWidget::~OpenGLWidget()
 
 void OpenGLWidget::mousePressEvent(QMouseEvent * /*event*/)
 {
+    // Clear input samples and redraw
     inputSamples_.clear();
     update();
 }
 
 void OpenGLWidget::mouseMoveEvent(QMouseEvent * event)
 {
+    // Add input sample and redraw
     inputSamples_.push_back(event->pos());
     update();
 }
@@ -43,37 +47,95 @@ void OpenGLWidget::initializeGL()
 {
     OpenGLFunctions * f = openGLFunctions();
 
+    // Initialize shader program
+    shaderProgram_.addShaderFromSourceFile(QOpenGLShader::Vertex, ":/shader.v.glsl");
+    shaderProgram_.addShaderFromSourceFile(QOpenGLShader::Fragment, ":/shader.f.glsl");
+    shaderProgram_.link();
+
+    // Get shader locations
+    shaderProgram_.bind();
+    vertexLoc_     = shaderProgram_.attributeLocation("vertex");
+    projMatrixLoc_ = shaderProgram_.uniformLocation("projMatrix");
+    viewMatrixLoc_ = shaderProgram_.uniformLocation("viewMatrix");
+    shaderProgram_.release();
+
+    // Create VBO
+    vbo_.create();
+
+    // Create VAO
+    vao_.create();
+    GLsizei  stride  = sizeof(GLVertex);
+    GLvoid * pointer = reinterpret_cast<void*>(offsetof(GLVertex, x));
+    vao_.bind();
+    vbo_.bind();
+    f->glEnableVertexAttribArray(vertexLoc_);
+    f->glVertexAttribPointer(
+                vertexLoc_, // index of the generic vertex attribute
+                2,          // number of components   (x and y components)
+                GL_FLOAT,   // type of each component
+                GL_FALSE,   // should it be normalized
+                stride,     // byte offset between consecutive vertex attributes
+                pointer);   // byte offset between the first attribute and the pointer given to allocate()
+    vbo_.release();
+    vao_.release();
+
+    // Set clear color
     f->glClearColor(1, 1, 1, 1);
 }
 
 void OpenGLWidget::resizeGL(int w, int h)
 {
+    // Set projection matrix
     const float left   = 0.0f;
     const float right  = w;
     const float bottom = h;
     const float top    = 0.0f;
     const float near   = -1.0f;
     const float far    = 1.0f;
-
-    projectionMatrix_.setToIdentity();
-    projectionMatrix_.ortho(left, right, bottom, top, near, far);
+    projMatrix_.setToIdentity();
+    projMatrix_.ortho(left, right, bottom, top, near, far);
 }
 
 void OpenGLWidget::paintGL()
 {
-    computeGLSamples_();
-
     OpenGLFunctions * f = openGLFunctions();
 
+    // Update VBO
+    // Note: for simplicity, we perform this at each paintGL. In an actual app,
+    // it would be much better to do this only once after each mouse event.
+    computeGLVertices_();
+    vbo_.bind();
+    vbo_.allocate(glVertices_.data(), glVertices_.size() * sizeof(GLVertex));
+    vbo_.release();
+
+    // Clear color and depth buffer
     f->glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+    // Bind shader program
+    shaderProgram_.bind();
 
+    // Set uniform values
+    shaderProgram_.setUniformValue(projMatrixLoc_, projMatrix_);
+    shaderProgram_.setUniformValue(viewMatrixLoc_, viewMatrix_);
+
+    // Draw triangles
+    vao_.bind();
+    f->glDrawArrays(GL_TRIANGLE_STRIP,   // mode
+                    0,                   // first index
+                    glVertices_.size()); // number of indices
+    vao_.release();
+
+    // Release shader program
+    shaderProgram_.release();
 }
 
 void OpenGLWidget::cleanupGL()
 {
-    OpenGLFunctions * f = openGLFunctions();
+    // Destroy VAO
+    vao_.destroy();
 
+    // Destroy VBO
+    vbo_.destroy();
 }
 
 QPointF OpenGLWidget::computeNormal_(const QPoint & p, const QPoint & q)
@@ -92,7 +154,7 @@ QPointF OpenGLWidget::computeNormal_(const QPoint & p, const QPoint & q)
     return QPointF(-d.y(), d.x());
 }
 
-void OpenGLWidget::computeGLSamples_()
+void OpenGLWidget::computeGLVertices_()
 {
     glVertices_.clear();
 

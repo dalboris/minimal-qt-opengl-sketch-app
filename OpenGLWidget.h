@@ -3,6 +3,7 @@
 
 #include <QOpenGLWidget>
 #include <QOpenGLFunctions_3_2_Core>
+#include <QMatrix4x4>
 
 using OpenGLFunctions = QOpenGLFunctions_3_2_Core;
 
@@ -23,6 +24,10 @@ private:
     void resizeGL(int w, int h);
     void paintGL();
     void cleanupGL();
+
+private:
+    QMatrix4x4 projectionMatrix_;
+    QMatrix4x4 viewMatrix_;
 };
 
 #endif // OPENGLWIDGET_H

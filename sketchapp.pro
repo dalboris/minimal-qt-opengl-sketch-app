@@ -7,3 +7,7 @@ SOURCES += \
 
 HEADERS  += \
     OpenGLWidget.h
+
+DISTFILES += \
+    shader.f.glsl \
+    shader.v.glsl

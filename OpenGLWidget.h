@@ -35,6 +35,7 @@ private:
     void cleanupGL();
 
 private:
+    QPointF computeNormal_(const QPoint & p, const QPoint & q);
     void computeGLSamples_();
 
 private:
@@ -43,8 +44,11 @@ private:
 
     std::vector<QPoint> inputSamples_;
 
-    struct GLVertex { float x, y; };
-    std::vector<GLVertex> glSamples_;
+    struct GLVertex {
+        float x, y;
+        GLVertex(float x, float y) : x(x), y(y) {}
+    };
+    std::vector<GLVertex> glVertices_;
 
     QOpenGLBuffer vbo_;
     QOpenGLVertexArrayObject vao_;

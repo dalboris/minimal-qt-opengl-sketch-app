@@ -23,14 +23,14 @@ void OpenGLWidget::mousePressEvent(QMouseEvent * /*event*/)
 {
     // Clear input samples and redraw
     inputSamples_.clear();
-    update();
+    repaint();
 }
 
 void OpenGLWidget::mouseMoveEvent(QMouseEvent * event)
 {
     // Add input sample and redraw
     inputSamples_.push_back(event->pos());
-    update();
+    repaint();
 }
 
 void OpenGLWidget::mouseReleaseEvent(QMouseEvent * /*event*/)
